@@ -10,7 +10,7 @@ services:
     ports:
       - "4200:4200"
 
-  worker:
+  flow:
     image: prefecthq/prefect:2.14.20-python3.11
     restart: always
     volumes:
