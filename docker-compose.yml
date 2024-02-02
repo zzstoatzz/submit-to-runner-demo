@@ -16,7 +16,7 @@ services:
     volumes:
       - .:/app
     working_dir: /app
-    command: ["sh", "-c", "sleep 3 && python work.py"]
+    command: ["sh", "-c", "sleep 1 && python work.py"] # wait just a sec for the server to start
     environment:
       - PREFECT_API_URL=http://server:4200/api
       - PREFECT_EXPERIMENTAL_ENABLE_EXTRA_RUNNER_ENDPOINTS=True
