@@ -1,0 +1,30 @@
+version: '3.9'
+services:
+  server:
+    image: prefecthq/prefect:2.14.20-python3.11
+    restart: always
+    volumes:
+      - prefect:/root/.prefect
+    entrypoint: ["/bin/bash", "-c"]
+    command: ["prefect server start --host 0.0.0.0"]
+    ports:
+      - "4200:4200"
+
+  worker:
+    image: prefecthq/prefect:2.14.20-python3.11
+    restart: always
+    volumes:
+      - .:/app
+    working_dir: /app
+    command: ["sh", "-c", "sleep 3 && python work.py"]
+    environment:
+      - PREFECT_API_URL=http://server:4200/api
+      - PREFECT_EXPERIMENTAL_ENABLE_EXTRA_RUNNER_ENDPOINTS=True
+      - PREFECT_RUNNER_SERVER_HOST=127.0.0.1
+    depends_on:
+      - server
+    ports:
+      - "8080:8080"
+
+volumes:
+  prefect:
