@@ -1,7 +1,18 @@
 version: '3.9'
 services:
+
+  postgres:
+    image: postgres:14
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: prefect
+      POSTGRES_DB: prefect
+    ports:
+      - "5432:5432"
+
   server:
-    image: prefecthq/prefect:2.14.20-python3.11
+    image: prefecthq/prefect:2-python3.11
     restart: always
     volumes:
       - prefect:/root/.prefect
@@ -9,9 +20,13 @@ services:
     command: ["prefect server start --host 0.0.0.0"]
     ports:
       - "4200:4200"
+    environment:
+    - PREFECT_API_DATABASE_CONNECTION_URL=postgresql+asyncpg://postgres:prefect@postgres:5432/prefect
+    depends_on:
+      - postgres
 
   flow:
-    image: prefecthq/prefect:2.14.20-python3.11
+    image: prefecthq/prefect:2-python3.11
     restart: always
     volumes:
       - .:/app

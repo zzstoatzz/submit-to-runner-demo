@@ -1,19 +1,27 @@
-import time
+import asyncio
 from prefect import flow, task
-from prefect.runner.submit import submit_to_runner
+from prefect.runner.submit import submit_to_runner, wait_for_submitted_runs
 
 @task
-def simulate_work(duration: int) -> None:
-    time.sleep(duration)
+async def fetch_data(url: str) -> dict:
+    await asyncio.sleep(2)
+    return {"url": url, "data": "Sample data"}
+
+@task
+async def process_data(data: dict) -> str:
+    await asyncio.sleep(1)
+    return f"Processed data from {data['url']}"
 
 @flow
-def collection_of_tasks(x: int):
-    simulate_work.map(range(x))
-
+async def data_processing_pipeline(urls: list[str]):
+    fetched_data = await fetch_data.map(urls)
+    return await process_data.map(fetched_data)
 
 @flow
-def my_flow():
-    submit_to_runner(collection_of_tasks, [{"x": i} for i in range(10)])
+async def sample_async_etl():
+    urls = ["https://example.com", "https://example.org", "https://example.net"]
+    await submit_to_runner(data_processing_pipeline, [{"urls": urls} for _ in range(5)])
+    await wait_for_submitted_runs()
 
 if __name__ == "__main__":
-    my_flow.serve("simulate-work", webserver=True, limit=10)
+    sample_async_etl.serve("data-processing", webserver=True, limit=50)
